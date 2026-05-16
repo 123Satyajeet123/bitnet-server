@@ -1,0 +1,43 @@
+#!/bin/sh
+# postrm script for bitnet-server
+# Runs after package files are removed
+
+set -e
+
+case "$1" in
+  purge)
+    # User ran 'apt purge' - remove everything including state
+    echo "bitnet-server: Purging all data and configuration..."
+
+    # Remove state directory (includes downloaded model ~1.2GB)
+    if [ -d /var/lib/bitnet-server ]; then
+      rm -rf /var/lib/bitnet-server
+      echo "bitnet-server: Removed /var/lib/bitnet-server/ (including model)"
+    fi
+
+    # Remove system user and group
+    if getent passwd bitnet >/dev/null; then
+      deluser --quiet --system bitnet || true
+      echo "bitnet-server: Removed system user 'bitnet'"
+    fi
+
+    if getent group bitnet >/dev/null; then
+      delgroup --quiet --system bitnet || true
+      echo "bitnet-server: Removed system group 'bitnet'"
+    fi
+    ;;
+
+  remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+    # User ran 'apt remove' (not purge) - keep state for potential reinstall
+    # This preserves the downloaded model so reinstalling is instant
+    ;;
+
+  *)
+    echo "postrm called with unknown argument: $1" >&2
+    exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

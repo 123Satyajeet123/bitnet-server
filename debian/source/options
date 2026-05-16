@@ -1,0 +1,5 @@
+extend-diff-ignore = "^learning/|^docs/|^\.claude/"
+tar-ignore = "learning"
+tar-ignore = "docs"
+tar-ignore = ".git"
+tar-ignore = ".claude"

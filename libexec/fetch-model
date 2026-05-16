@@ -1,0 +1,67 @@
+#!/bin/sh
+# Fetch the BitNet model if missing or hash-mismatched.
+# Reads MODEL_URL, MODEL_PATH, MODEL_SHA256, MIN_FREE_DISK_MB from environment.
+# Invoked by systemd as ExecStartPre before starting the server.
+
+set -eu
+
+# Verify required environment variables are set
+: "${MODEL_URL:?MODEL_URL must be set}"
+: "${MODEL_PATH:?MODEL_PATH must be set}"
+: "${MODEL_SHA256:?MODEL_SHA256 must be set}"
+: "${MIN_FREE_DISK_MB:=1500}"
+
+MODEL_DIR=$(dirname "$MODEL_PATH")
+TMP_PATH="${MODEL_PATH}.tmp"
+
+# If model exists and SHA matches, we're done
+if [ -f "$MODEL_PATH" ]; then
+  ACTUAL=$(sha256sum "$MODEL_PATH" | awk '{print $1}')
+  if [ "$ACTUAL" = "$MODEL_SHA256" ]; then
+    echo "fetch-model: model already present and verified at $MODEL_PATH"
+    exit 0
+  else
+    echo "fetch-model: WARNING - SHA256 mismatch on existing model" >&2
+    echo "fetch-model: Expected: $MODEL_SHA256" >&2
+    echo "fetch-model: Got:      $ACTUAL" >&2
+    echo "fetch-model: Removing corrupted file and re-downloading" >&2
+    rm -f "$MODEL_PATH"
+  fi
+fi
+
+# Check free disk space before downloading
+FREE_MB=$(df -Pm "$MODEL_DIR" | awk 'NR==2 {print $4}')
+if [ "$FREE_MB" -lt "$MIN_FREE_DISK_MB" ]; then
+  echo "fetch-model: ERROR - Insufficient disk space in $MODEL_DIR" >&2
+  echo "fetch-model: Need ${MIN_FREE_DISK_MB} MB, but only ${FREE_MB} MB available" >&2
+  exit 1
+fi
+
+echo "fetch-model: Downloading BitNet b1.58 2B4T model (~1.2 GB)"
+echo "fetch-model: Source: $MODEL_URL"
+echo "fetch-model: This may take several minutes on first start..."
+
+# Download to temporary file
+if ! curl -fL --progress-bar --connect-timeout 30 --retry 3 --retry-delay 5 \
+       -o "$TMP_PATH" "$MODEL_URL"; then
+  echo "fetch-model: ERROR - Download failed" >&2
+  rm -f "$TMP_PATH"
+  exit 1
+fi
+
+# Verify SHA256 checksum
+echo "fetch-model: Verifying checksum..."
+ACTUAL=$(sha256sum "$TMP_PATH" | awk '{print $1}')
+if [ "$ACTUAL" != "$MODEL_SHA256" ]; then
+  echo "fetch-model: ERROR - SHA256 mismatch after download" >&2
+  echo "fetch-model: Expected: $MODEL_SHA256" >&2
+  echo "fetch-model: Got:      $ACTUAL" >&2
+  echo "fetch-model: This could indicate a corrupted download or tampered file" >&2
+  rm -f "$TMP_PATH"
+  exit 1
+fi
+
+# Atomic rename - ensures we never see a partial file at the final path
+mv "$TMP_PATH" "$MODEL_PATH"
+echo "fetch-model: Download complete and verified!"
+echo "fetch-model: Model installed at $MODEL_PATH"

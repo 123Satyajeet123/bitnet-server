@@ -1,0 +1,38 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+  configure)
+    # Create system user/group
+    if ! getent group bitnet >/dev/null; then
+      addgroup --system bitnet
+    fi
+
+    if ! getent passwd bitnet >/dev/null; then
+      adduser --system --ingroup bitnet \
+              --no-create-home \
+              --home /var/lib/bitnet-server \
+              --shell /usr/sbin/nologin \
+              --gecos "BitNet LLM Server" \
+              bitnet
+    fi
+
+    # Create state directory
+    install -d -o bitnet -g bitnet -m 750 /var/lib/bitnet-server
+    install -d -o bitnet -g bitnet -m 750 /var/lib/bitnet-server/models
+
+    echo "bitnet-server: user created, listening on 127.0.0.1:11435"
+    ;;
+
+  abort-upgrade|abort-remove|abort-deconfigure)
+    ;;
+
+  *)
+    echo "postinst called with unknown argument: $1" >&2
+    exit 1
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

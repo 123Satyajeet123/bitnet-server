@@ -1,0 +1,11 @@
+[Unit]
+Description=BitNet b1.58 2B4T server listening socket
+Documentation=https://github.com/123Satyajeet123/bitnet-server
+PartOf=bitnet-server.service
+
+[Socket]
+ListenStream=127.0.0.1:11435
+Accept=no
+
+[Install]
+WantedBy=sockets.target

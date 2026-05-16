@@ -1,0 +1,2 @@
+config/config.env etc/bitnet-server/
+libexec/fetch-model usr/libexec/bitnet-server/

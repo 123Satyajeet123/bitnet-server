@@ -1,0 +1,8 @@
+bitnet-server (0.1.0-4) noble; urgency=medium
+
+  * Initial release.
+  * Packages bitnet.cpp's llama-server with BitNet b1.58 2B4T weights.
+  * Ships systemd service + socket; runs as unprivileged 'bitnet' user.
+  * Model auto-fetched from HuggingFace on first service start.
+
+ -- Satyajeet Das <satyajeetdas225@gmail.com>  Sun, 17 May 2026 00:20:00 +0530

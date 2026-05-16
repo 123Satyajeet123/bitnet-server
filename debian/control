@@ -1,0 +1,32 @@
+Source: bitnet-server
+Section: misc
+Priority: optional
+Maintainer: Satyajeet Das <satyajeetdas225@gmail.com>
+Build-Depends:
+ debhelper-compat (= 13),
+ cmake,
+ clang,
+ git,
+ ca-certificates
+Standards-Version: 4.6.2
+Homepage: https://github.com/123Satyajeet123/bitnet-server
+Vcs-Git: https://github.com/123Satyajeet123/bitnet-server.git
+Vcs-Browser: https://github.com/123Satyajeet123/bitnet-server
+
+Package: bitnet-server
+Architecture: amd64
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ curl,
+ ca-certificates,
+ adduser,
+ systemd
+Description: Local BitNet b1.58 2B4T LLM as a systemd-managed OpenAI-compatible API
+ bitnet-server packages Microsoft's BitNet b1.58 2B4T model and its bitnet.cpp
+ runtime as a systemd service. After installation it exposes an
+ OpenAI-compatible chat completions endpoint at http://127.0.0.1:11435.
+ .
+ The package builds bitnet.cpp from a pinned upstream commit during package
+ construction, and fetches the model weights from HuggingFace on first start.
+ CPU-only; no GPU required.

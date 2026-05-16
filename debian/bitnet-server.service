@@ -1,0 +1,36 @@
+[Unit]
+Description=BitNet b1.58 2B4T local LLM server (OpenAI-compatible API)
+Documentation=https://github.com/123Satyajeet123/bitnet-server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=bitnet
+Group=bitnet
+WorkingDirectory=/var/lib/bitnet-server
+EnvironmentFile=/etc/bitnet-server/config.env
+ExecStartPre=/usr/libexec/bitnet-server/fetch-model
+PassEnvironment=LISTEN_FDS LISTEN_PID
+ExecStart=/usr/bin/llama-server \
+  --model ${MODEL_PATH} \
+  --host 127.0.0.1 \
+  --port ${PORT} \
+  --threads ${THREADS} \
+  --ctx-size ${CTX_SIZE}
+Restart=on-failure
+RestartSec=5
+
+# Sandboxing
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ReadWritePaths=/var/lib/bitnet-server
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target

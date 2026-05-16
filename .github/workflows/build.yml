@@ -1,0 +1,40 @@
+name: Build .deb
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential debhelper cmake clang git curl ca-certificates lintian
+
+      - name: Build package
+        run: dpkg-buildpackage -us -uc -b
+
+      - name: Run lintian
+        run: lintian ../bitnet-server_*.deb || true
+
+      - name: Install and verify
+        run: |
+          sudo dpkg -i ../bitnet-server_*.deb
+          llama-server --version
+          test -f /usr/lib/systemd/system/bitnet-server.socket
+          test -f /usr/lib/systemd/system/bitnet-server.service
+          test -f /etc/bitnet-server/config.env
+          test -x /usr/libexec/bitnet-server/fetch-model
+          getent passwd bitnet
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bitnet-server-deb
+          path: ../bitnet-server_*.deb

@@ -1,0 +1,32 @@
+# Build artifacts
+*.deb
+*.dsc
+*.tar.gz
+*.tar.xz
+*.changes
+*.buildinfo
+*.upload
+debian/.debhelper/
+debian/files
+debian/bitnet-server/
+debian/bitnet-server.substvars
+debian/debhelper-build-stamp
+
+# Upstream bitnet.cpp clones (we fetch fresh each build)
+/build/
+/bitnet.cpp/
+
+# Editor cruft
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*~
+
+# Model cache (local testing)
+*.gguf
+
+# Personal notes
+/learning/
+/docs/
+/.pc/
